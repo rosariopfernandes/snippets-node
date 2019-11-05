@@ -20,41 +20,41 @@ function randomShard() {
 async function insertData() {
   const instruments = [
     {
-      shard: randomShard(),  // add the new shard field to the document
+      shard: randomShard(), // add the new shard field to the document
       symbol: 'AAA',
       price: {
         currency: 'USD',
-        micros: 34790000
+        micros: 34790000,
       },
       exchange: 'EXCHG1',
       instrumentType: 'commonstock',
       timestamp: admin.firestore.Timestamp.fromMillis(
-          Date.parse('2019-01-01T13:45:23.010Z'))
+        Date.parse('2019-01-01T13:45:23.010Z')),
     },
     {
-      shard: randomShard(),  // add the new shard field to the document
+      shard: randomShard(), // add the new shard field to the document
       symbol: 'BBB',
       price: {
         currency: 'JPY',
-        micros: 64272000000
+        micros: 64272000000,
       },
       exchange: 'EXCHG2',
       instrumentType: 'commonstock',
       timestamp: admin.firestore.Timestamp.fromMillis(
-          Date.parse('2019-01-01T13:45:23.101Z'))
+        Date.parse('2019-01-01T13:45:23.101Z')),
     },
     {
-      shard: randomShard(),  // add the new shard field to the document
+      shard: randomShard(), // add the new shard field to the document
       symbol: 'Index1 ETF',
       price: {
         currency: 'USD',
-        micros: 473000000
+        micros: 473000000,
       },
       exchange: 'EXCHG1',
       instrumentType: 'etf',
       timestamp: admin.firestore.Timestamp.fromMillis(
-          Date.parse('2019-01-01T13:45:23.001Z'))
-    }
+        Date.parse('2019-01-01T13:45:23.001Z')),
+    },
   ];
 
   const batch = fs.batch();
@@ -72,40 +72,40 @@ async function insertData() {
 function createQuery(fieldName, fieldOperator, fieldValue, limit = 5) {
   // For each shard value, map it to a new query which adds an additional
   // where clause specifying the shard value.
-  return Promise.all(shards.map(s => {
-        return fs.collection('instruments')
-            .where('shard', '==', s)  // new shard condition
-            .where(fieldName, fieldOperator, fieldValue)
-            .orderBy('timestamp', 'desc')
-            .limit(limit)
-            .get();
-      }))
-      // Now that we have a promise of multiple query results, we need to
-      // merge the results from all of the queries into a single result set.
-      .then((snapshots) => {
-        // Create a new container for 'all' results
-        const docs = [];
-        snapshots.forEach((querySnapshot) => {
-          querySnapshot.forEach((doc) => {
-            // append each document to the new all container
-            docs.push(doc);
-          });
+  return Promise.all(shards.map((s) => {
+    return fs.collection('instruments')
+      .where('shard', '==', s) // new shard condition
+      .where(fieldName, fieldOperator, fieldValue)
+      .orderBy('timestamp', 'desc')
+      .limit(limit)
+      .get();
+  }))
+  // Now that we have a promise of multiple query results, we need to
+  // merge the results from all of the queries into a single result set.
+    .then((snapshots) => {
+      // Create a new container for 'all' results
+      const docs = [];
+      snapshots.forEach((querySnapshot) => {
+        querySnapshot.forEach((doc) => {
+          // append each document to the new all container
+          docs.push(doc);
         });
-        // since we're wanting the `limit` newest values, sort the array
-        // descending and take the first `limit` values. By returning negated
-        // values we can easily get a descending value.
-        docs.sort((a, b) => {
-          const aT = a.data().timestamp;
-          const bT = b.data().timestamp;
-          const secondsDiff = aT.seconds - bT.seconds;
-          if (secondsDiff === 0) {
-            return -(aT.nanoseconds - bT.nanoseconds);
-          } else {
-            return -secondsDiff;
-          }
-        });
-        return docs.slice(0, limit);
       });
+      // since we're wanting the `limit` newest values, sort the array
+      // descending and take the first `limit` values. By returning negated
+      // values we can easily get a descending value.
+      docs.sort((a, b) => {
+        const aT = a.data().timestamp;
+        const bT = b.data().timestamp;
+        const secondsDiff = aT.seconds - bT.seconds;
+        if (secondsDiff === 0) {
+          return -(aT.nanoseconds - bT.nanoseconds);
+        } else {
+          return -secondsDiff;
+        }
+      });
+      return docs.slice(0, limit);
+    });
 }
 
 function queryCommonStock() {
@@ -124,34 +124,34 @@ function queryUSDInstruments() {
 
 // [START fs_sharded_timestamps_post_exec]
 insertData()
-    .then(() => {
-      const commonStock = queryCommonStock()
-          .then(
-              (docs) => {
-                console.log('--- queryCommonStock: ');
-                docs.forEach((doc) => {
-                  console.log(`doc = ${util.inspect(doc.data(), {depth: 4})}`);
-                });
-              }
-          );
-      const exchange1Instruments = queryExchange1Instruments()
-          .then(
-              (docs) => {
-                console.log('--- queryExchange1Instruments: ');
-                docs.forEach((doc) => {
-                  console.log(`doc = ${util.inspect(doc.data(), {depth: 4})}`);
-                });
-              }
-          );
-      const usdInstruments = queryUSDInstruments()
-          .then(
-              (docs) => {
-                console.log('--- queryUSDInstruments: ');
-                docs.forEach((doc) => {
-                  console.log(`doc = ${util.inspect(doc.data(), {depth: 4})}`);
-                });
-              }
-          );
-      return Promise.all([commonStock, exchange1Instruments, usdInstruments]);
-    });
+  .then(() => {
+    const commonStock = queryCommonStock()
+      .then(
+        (docs) => {
+          console.log('--- queryCommonStock: ');
+          docs.forEach((doc) => {
+            console.log(`doc = ${util.inspect(doc.data(), {depth: 4})}`);
+          });
+        }
+      );
+    const exchange1Instruments = queryExchange1Instruments()
+      .then(
+        (docs) => {
+          console.log('--- queryExchange1Instruments: ');
+          docs.forEach((doc) => {
+            console.log(`doc = ${util.inspect(doc.data(), {depth: 4})}`);
+          });
+        }
+      );
+    const usdInstruments = queryUSDInstruments()
+      .then(
+        (docs) => {
+          console.log('--- queryUSDInstruments: ');
+          docs.forEach((doc) => {
+            console.log(`doc = ${util.inspect(doc.data(), {depth: 4})}`);
+          });
+        }
+      );
+    return Promise.all([commonStock, exchange1Instruments, usdInstruments]);
+  });
 // [END fs_sharded_timestamps_post_exec]

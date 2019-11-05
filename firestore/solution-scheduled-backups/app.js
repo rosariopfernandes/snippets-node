@@ -1,7 +1,7 @@
 const axios = require('axios');
 const dateformat = require('dateformat');
 const express = require('express');
-const { google } = require('googleapis');
+const {google} = require('googleapis');
 
 const app = express();
 
@@ -16,10 +16,10 @@ app.get('/cloud-firestore-export', async (req, res) => {
 
   const headers = {
     'Content-Type': 'application/json',
-    Authorization: `Bearer ${accessToken}`,
+    'Authorization': `Bearer ${accessToken}`,
   };
 
-  const { outputUriPrefix } = req.query;
+  const {outputUriPrefix} = req.query;
   if (!outputUriPrefix) {
     res.status(500).send('outputUriPrefix required');
   } else if (outputUriPrefix && outputUriPrefix.indexOf('gs://') !== 0) {
@@ -40,7 +40,7 @@ app.get('/cloud-firestore-export', async (req, res) => {
   };
 
   // If specified, mark specific collections for backup
-  const { collections } = req.query;
+  const {collections} = req.query;
   if (collections) {
     body.collectionIds = collections.split(',');
   }
@@ -49,7 +49,7 @@ app.get('/cloud-firestore-export', async (req, res) => {
   const url = `https://firestore.googleapis.com/v1beta1/projects/${projectId}/databases/(default):exportDocuments`;
 
   try {
-    const response = await axios.post(url, body, { headers });
+    const response = await axios.post(url, body, {headers: headers});
     res
       .status(200)
       .send(response.data)
